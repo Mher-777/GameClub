@@ -1,0 +1,2560 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#12151c">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>GameClub - Управление</title>
+    <style>
+        :root {
+            --bg-dark: #12151c;
+            --card-bg: #1c212b;
+            --card-border: #2a3142;
+            --text-main: #ffffff;
+            --text-muted: #8a94a6;
+            --accent-green: #4ade80;
+            --accent-blue: #3b82f6;
+            --accent-red: #ef4444;
+            --accent-orange: #f59e0b;
+            --accent-purple: #a855f7;
+            --accent-yellow: #fbbf24;
+            --accent-pink: #ec4899;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body.modal-open {
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+        }
+
+        header {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--card-border);
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        h1 { margin: 0; font-size: 24px; }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .shift-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .shift-date {
+            color: var(--text-main);
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .price-info { color: var(--accent-green); font-weight: bold; }
+
+        .btn-close-shift {
+            background-color: var(--accent-purple);
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: filter 0.2s;
+            touch-action: manipulation;
+        }
+
+        .btn-close-shift:hover { filter: brightness(1.15); }
+
+        /* Вкладки */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            max-width: 1200px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-muted);
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.2s;
+            touch-action: manipulation;
+        }
+
+        .tab-btn.active {
+            background-color: var(--accent-blue);
+            color: #fff;
+            border-color: var(--accent-blue);
+        }
+
+        /* Сетка ПК */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .card.busy { border-color: var(--accent-green); }
+        .card.paused { border-color: var(--accent-yellow); background: linear-gradient(135deg, var(--card-bg) 0%, rgba(251,191,36,0.08) 100%); }
+        .card.reserved { border-color: var(--accent-pink); }
+        .card.soon-booking { border-color: var(--accent-red); }
+
+        .reserved-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--accent-pink);
+            color: #fff;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 10px;
+            text-transform: uppercase;
+        }
+
+        .pause-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--accent-yellow);
+            color: #000;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 10px;
+            text-transform: uppercase;
+        }
+
+        .pc-title { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
+        .pc-status { font-size: 14px; color: var(--text-muted); margin-bottom: 15px; }
+        .display-area { font-size: 32px; font-weight: bold; margin-bottom: 5px; font-variant-numeric: tabular-nums; }
+        .cost-area { font-size: 18px; color: var(--text-muted); margin-bottom: 5px; }
+        .card.busy .cost-area { color: var(--accent-green); }
+        
+        .bar-cost-area {
+            font-size: 14px;
+            color: var(--accent-orange);
+            margin-bottom: 15px;
+            font-weight: bold;
+            min-height: 18px;
+        }
+
+        .reserved-info {
+            font-size: 12px;
+            color: var(--accent-pink);
+            margin-bottom: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+            flex-wrap: wrap;
+        }
+
+        button.action-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: filter 0.2s;
+            flex: 1;
+            min-width: 60px;
+            touch-action: manipulation;
+        }
+
+        .btn-start { background-color: var(--accent-green); color: #000; }
+        .btn-stop { background-color: var(--accent-red); color: #fff; }
+        .btn-bar { background-color: var(--accent-orange); color: #000; }
+        .btn-edit { background-color: var(--accent-blue); color: #fff; }
+        .btn-del { background-color: var(--accent-red); color: #fff; }
+        .btn-secondary { background-color: var(--card-border); color: var(--text-main); }
+        .btn-purple { background-color: var(--accent-purple); color: #fff; }
+        .btn-pause { background-color: var(--accent-yellow); color: #000; }
+        .btn-resume { background-color: var(--accent-green); color: #000; }
+        .btn-book { background-color: var(--accent-pink); color: #fff; }
+        .btn-qr { background-color: #0ea5e9; color: #fff; }
+
+        button.action-btn:hover { filter: brightness(1.1); }
+        button.action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Панели */
+        .panel {
+            display: none;
+            width: 100%;
+            max-width: 1200px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .panel.active { display: block; }
+        .panel h2 { margin-top: 0; border-bottom: 1px solid var(--card-border); padding-bottom: 10px; }
+
+        /* Формы */
+        .form-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        input, select {
+            background-color: var(--bg-dark);
+            border: 1px solid var(--card-border);
+            color: #fff;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            font-family: inherit;
+        }
+
+        input:focus, select:focus { border-color: var(--accent-blue); }
+
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid var(--card-border);
+            gap: 10px;
+        }
+
+        .list-item:last-child { border-bottom: none; }
+        .item-info { display: flex; gap: 15px; align-items: center; flex: 1; }
+        .item-price { color: var(--accent-green); font-weight: bold; }
+
+        /* Модальные окна */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.75);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 25px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .modal.wide { max-width: 700px; }
+
+        .modal h3 { margin-top: 0; margin-bottom: 15px; }
+
+        .modal-list {
+            max-height: 250px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            background-color: var(--bg-dark);
+        }
+
+        .modal-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--card-border);
+            cursor: pointer;
+            transition: background 0.2s;
+            touch-action: manipulation;
+        }
+
+        .modal-item:hover { background-color: var(--card-bg); }
+        .modal-item:last-child { border-bottom: none; }
+
+        .modal-total {
+            background-color: var(--bg-dark);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .modal-total span:last-child { color: var(--accent-green); }
+
+        .added-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background-color: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 6px;
+            margin-bottom: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            touch-action: manipulation;
+        }
+
+        .added-item:hover {
+            background-color: rgba(239, 68, 68, 0.2);
+            text-decoration: line-through;
+        }
+
+        .modal-section-title {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            margin-top: 10px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: auto;
+        }
+
+        .empty-text {
+            padding: 15px;
+            color: var(--text-muted);
+            text-align: center;
+            font-style: italic;
+        }
+
+        /* Отчет смены */
+        .report-header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--accent-purple);
+        }
+
+        .report-date {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .report-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .report-card {
+            background-color: var(--bg-dark);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .report-card-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .report-card-value {
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .report-card-value.green { color: var(--accent-green); }
+        .report-card-value.orange { color: var(--accent-orange); }
+        .report-card-value.blue { color: var(--accent-blue); }
+        .report-card-value.purple { color: var(--accent-purple); }
+
+        .report-total {
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .report-total-label {
+            font-size: 14px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            opacity: 0.9;
+        }
+
+        .report-total-value {
+            font-size: 36px;
+            font-weight: bold;
+        }
+
+        .report-details {
+            background-color: var(--bg-dark);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .report-details summary {
+            cursor: pointer;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--accent-blue);
+        }
+
+        .report-details summary:hover { text-decoration: underline; }
+
+        .report-pc-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--card-border);
+            gap: 10px;
+        }
+
+        .report-pc-row:last-child { border-bottom: none; }
+
+        .history-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            padding: 10px;
+            border: 1px solid var(--card-border);
+            border-radius: 6px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            touch-action: manipulation;
+        }
+
+        .history-item:hover { border-color: var(--accent-purple); }
+
+        .history-item-date {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .history-item-total {
+            font-weight: bold;
+            color: var(--accent-green);
+        }
+
+        /* Статистика */
+        .stats-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stats-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: 1px solid var(--card-border);
+            background: var(--bg-dark);
+            color: var(--text-muted);
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+            touch-action: manipulation;
+        }
+
+        .stats-btn.active {
+            background: var(--accent-blue);
+            color: #fff;
+            border-color: var(--accent-blue);
+        }
+
+        .chart-container {
+            background: var(--bg-dark);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .chart-bars {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            height: 200px;
+            gap: 8px;
+            padding-top: 20px;
+        }
+
+        .chart-bar-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100%;
+            justify-content: flex-end;
+        }
+
+        .chart-bar {
+            width: 100%;
+            max-width: 50px;
+            border-radius: 4px 4px 0 0;
+            transition: height 0.4s ease;
+            min-height: 4px;
+            position: relative;
+        }
+
+        .chart-bar.game { background: linear-gradient(180deg, var(--accent-green), #2dd4bf); }
+        .chart-bar.bar { background: linear-gradient(180deg, var(--accent-orange), var(--accent-yellow)); }
+        .chart-bar.stack { background: linear-gradient(180deg, var(--accent-purple), var(--accent-blue)); }
+
+        .chart-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 8px;
+            text-align: center;
+        }
+
+        .chart-value {
+            font-size: 10px;
+            color: var(--text-main);
+            margin-bottom: 4px;
+            font-weight: bold;
+        }
+
+        .chart-legend {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 15px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+
+        /* QR-код */
+        .qr-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background: #fff;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+
+        .qr-container canvas {
+            image-rendering: pixelated;
+        }
+
+        .qr-link {
+            margin-top: 10px;
+            font-size: 11px;
+            color: var(--text-muted);
+            word-break: break-all;
+            text-align: center;
+            max-width: 280px;
+        }
+
+        /* Бронирование */
+        .booking-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .booking-form label {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: -5px;
+        }
+
+        .booking-list {
+            margin-top: 15px;
+        }
+
+        .booking-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            background: var(--bg-dark);
+            gap: 10px;
+        }
+
+        .booking-item-info {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            flex: 1;
+        }
+
+        .booking-item-time {
+            font-weight: bold;
+            color: var(--accent-pink);
+            font-size: 14px;
+        }
+
+        .booking-item-client {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        /* Уведомления */
+        @keyframes slideIn {
+            from { transform: translateX(120%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 2000;
+            background: var(--accent-purple);
+            color: #fff;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-weight: bold;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            animation: slideIn 0.3s ease;
+            max-width: 350px;
+        }
+
+        .toast.warning { background: var(--accent-red); }
+        .toast.success { background: var(--accent-green); color: #000; }
+        .toast.info { background: var(--accent-blue); }
+
+        /* === АДАПТИВ === */
+
+        @media (max-width: 900px) {
+            .grid {
+                grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+                gap: 15px;
+            }
+            .report-grid { grid-template-columns: 1fr 1fr; }
+        }
+
+        @media (max-width: 700px) {
+            body {
+                padding: 10px;
+                padding-bottom: max(10px, env(safe-area-inset-bottom));
+            }
+
+            h1 { font-size: 20px; }
+
+            header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+                margin-bottom: 15px;
+            }
+
+            .header-right {
+                justify-content: space-between;
+                width: 100%;
+            }
+
+            .shift-info {
+                align-items: flex-start;
+                flex: 1;
+            }
+
+            .price-info {
+                font-size: 13px;
+                text-align: right;
+            }
+
+            .btn-close-shift {
+                width: 100%;
+                padding: 12px;
+                font-size: 15px;
+            }
+
+            .tabs {
+                overflow-x: auto;
+                flex-wrap: nowrap;
+                padding-bottom: 5px;
+                margin-bottom: 15px;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+            }
+            .tabs::-webkit-scrollbar { display: none; }
+
+            .tab-btn {
+                flex-shrink: 0;
+                padding: 10px 16px;
+                font-size: 14px;
+                white-space: nowrap;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .card { padding: 15px; }
+
+            .display-area {
+                font-size: 34px;
+                letter-spacing: 1px;
+            }
+            .cost-area { font-size: 15px; }
+            .pc-title { font-size: 17px; }
+
+            .btn-group { gap: 6px; }
+            button.action-btn {
+                padding: 12px 10px;
+                font-size: 14px;
+                min-height: 44px;
+            }
+            .btn-group > .btn-bar { flex: 1 1 40%; }
+            .btn-group > .btn-pause,
+            .btn-group > .btn-resume { flex: 1 1 40%; }
+            .btn-group > .btn-stop { flex: 1 1 100%; }
+            .btn-group > .btn-start { flex: 1 1 auto; }
+            .btn-group > .btn-book { flex: 0 0 auto; min-width: 60px; }
+
+            .panel { padding: 15px; }
+
+            .modal-overlay {
+                padding: 0;
+                align-items: flex-end;
+            }
+            .modal,
+            .modal.wide {
+                max-width: 100%;
+                width: 100%;
+                max-height: 92vh;
+                border-radius: 16px 16px 0 0;
+                padding: 20px 16px;
+                padding-bottom: max(20px, env(safe-area-inset-bottom));
+            }
+            .modal h3 { font-size: 18px; }
+
+            .form-row {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+            .form-row input,
+            .form-row select,
+            .form-row button {
+                width: 100% !important;
+            }
+
+            .list-item {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            .item-info {
+                flex-wrap: wrap;
+                width: 100%;
+            }
+            .item-info input {
+                flex: 1;
+                min-width: 80px;
+            }
+
+            .modal-item {
+                padding: 14px 12px;
+                font-size: 15px;
+            }
+            .added-item {
+                padding: 10px 12px;
+                font-size: 14px;
+            }
+
+            .report-grid { grid-template-columns: 1fr; gap: 10px; }
+            .report-total-value { font-size: 28px; }
+            .report-card-value { font-size: 20px; }
+
+            .qr-container canvas {
+                width: 180px !important;
+                height: 180px !important;
+            }
+
+            .stats-controls {
+                justify-content: space-between;
+            }
+            .stats-btn {
+                flex: 1;
+                padding: 8px 10px;
+                font-size: 13px;
+            }
+
+            .chart-container { padding: 12px 8px; }
+            .chart-bars {
+                height: 160px;
+                gap: 4px;
+            }
+            .chart-value {
+                font-size: 9px;
+                transform: rotate(-45deg);
+                transform-origin: center;
+                white-space: nowrap;
+            }
+            .chart-label {
+                font-size: 9px;
+                writing-mode: vertical-rl;
+                text-orientation: mixed;
+                height: 40px;
+            }
+
+            .booking-item {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            .booking-item-info { width: 100%; }
+
+            .modal-actions {
+                position: sticky;
+                bottom: 0;
+                background: var(--card-bg);
+                padding-top: 12px;
+                margin-top: 15px;
+                border-top: 1px solid var(--card-border);
+                margin-left: -16px;
+                margin-right: -16px;
+                padding-left: 16px;
+                padding-right: 16px;
+                flex-direction: column-reverse;
+                gap: 8px;
+            }
+            .modal-actions button { width: 100% !important; }
+
+            .history-item {
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+
+            .report-card-label { font-size: 11px; }
+
+            .hide-mobile { display: none; }
+
+            .toast {
+                top: auto;
+                bottom: 20px;
+                right: 10px;
+                left: 10px;
+                max-width: none;
+                text-align: center;
+                padding: 12px 18px;
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .display-area { font-size: 28px; }
+            .tab-btn { padding: 9px 12px; font-size: 13px; }
+            button.action-btn { padding: 10px 8px; font-size: 13px; }
+            .modal { padding: 16px 12px; }
+            h1 { font-size: 18px; }
+        }
+
+        @media (max-height: 500px) and (orientation: landscape) {
+            .grid { grid-template-columns: repeat(2, 1fr); }
+            .modal { max-height: 98vh; }
+        }
+
+        @media (hover: none) {
+            button.action-btn:hover { filter: none; }
+            .modal-item:hover { background-color: transparent; }
+            .history-item:hover { border-color: var(--card-border); }
+            .added-item:hover { text-decoration: none; background-color: rgba(239,68,68,0.1); }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>GameClub</h1>
+        <div class="header-right">
+            <div class="shift-info">
+                <span>Смена</span>
+                <span class="shift-date" id="shift-date">--.--.----</span>
+            </div>
+            <div class="price-info" id="header-price">Тариф: 1000 ֏ / час</div>
+            <button class="btn-close-shift" onclick="openCloseShiftModal()">🔒 Закрыть смену</button>
+        </div>
+    </header>
+
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="pcs" onclick="switchTab('pcs', this)">🖥️ Компьютеры</button>
+        <button class="tab-btn" data-tab="bar" onclick="switchTab('bar', this)">🍔 Бар</button>
+        <button class="tab-btn" data-tab="stats" onclick="switchTab('stats', this)">📊 Статистика</button>
+        <button class="tab-btn" data-tab="settings" onclick="switchTab('settings', this)">⚙️ Настройки</button>
+    </div>
+
+    <!-- Вкладка ПК -->
+    <div id="tab-pcs" class="panel active">
+        <div class="grid" id="pc-grid"></div>
+    </div>
+
+    <!-- Вкладка Бар -->
+    <div id="tab-bar" class="panel">
+        <h2>Продажа из Бара</h2>
+        <p style="color: var(--text-muted); font-size: 14px;">Нажмите "Продать", чтобы добавить товар на занятый ПК. Если занят только один — товар уйдёт автоматически.</p>
+        <div id="bar-list"></div>
+    </div>
+
+    <!-- Вкладка Статистика -->
+    <div id="tab-stats" class="panel">
+        <h2>📊 Статистика и графики</h2>
+        
+        <div class="stats-controls">
+            <button class="stats-btn active" data-period="7" onclick="renderStats(7, this)">7 дней</button>
+            <button class="stats-btn" data-period="14" onclick="renderStats(14, this)">14 дней</button>
+            <button class="stats-btn" data-period="30" onclick="renderStats(30, this)">30 дней</button>
+        </div>
+
+        <div class="chart-container">
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px; flex-wrap:wrap; gap:6px;">
+                <span style="font-weight:bold;">Выручка по дням</span>
+                <span style="color:var(--accent-green); font-weight:bold;" id="stats-total">0 ֏</span>
+            </div>
+            <div class="chart-bars" id="chart-bars"></div>
+            <div class="chart-legend">
+                <div class="legend-item"><div class="legend-color" style="background:var(--accent-green);"></div>Игры</div>
+                <div class="legend-item"><div class="legend-color" style="background:var(--accent-orange);"></div>Бар</div>
+            </div>
+        </div>
+
+        <div class="report-grid">
+            <div class="report-card">
+                <div class="report-card-label">Всего смен</div>
+                <div class="report-card-value blue" id="stats-shifts">0</div>
+            </div>
+            <div class="report-card">
+                <div class="report-card-label">Всего сессий</div>
+                <div class="report-card-value blue" id="stats-sessions">0</div>
+            </div>
+            <div class="report-card">
+                <div class="report-card-label">Выручка с игр</div>
+                <div class="report-card-value green" id="stats-game">0 ֏</div>
+            </div>
+            <div class="report-card">
+                <div class="report-card-label">Выручка с бара</div>
+                <div class="report-card-value orange" id="stats-bar">0 ֏</div>
+            </div>
+        </div>
+
+        <div class="report-total">
+            <div class="report-total-label">Общая выручка за период</div>
+            <div class="report-total-value" id="stats-total-revenue">0 ֏</div>
+        </div>
+
+        <h3 style="margin-top:25px;">🏆 Топ товаров</h3>
+        <div id="stats-top-items"></div>
+
+        <h3 style="margin-top:25px;">🖥️ Топ ПК по выручке</h3>
+        <div id="stats-top-pcs"></div>
+    </div>
+
+    <!-- Вкладка Настройки -->
+    <div id="tab-settings" class="panel">
+        <h2>Настройки клуба</h2>
+        
+        <div class="form-row">
+            <label>Стоимость часа (֏):</label>
+            <input type="number" id="setting-price" value="1000" style="width: 100px;">
+            <button class="action-btn btn-edit" onclick="savePrice()" style="flex: none; width: auto;">Сохранить</button>
+        </div>
+
+        <hr style="border-color: var(--card-border); margin: 25px 0;">
+
+        <h2>Управление ПК</h2>
+        <div class="form-row">
+            <input type="text" id="new-pc-name" placeholder="Название (например, PS5 #5)" style="flex: 1; min-width: 200px;">
+            <button class="action-btn btn-start" onclick="addPC()" style="flex: none; width: auto;">Добавить ПК</button>
+        </div>
+        <div id="pc-settings-list"></div>
+
+        <hr style="border-color: var(--card-border); margin: 25px 0;">
+
+        <h2>Управление Баром</h2>
+        <div class="form-row">
+            <input type="text" id="new-bar-name" placeholder="Название (например, Cola)" style="flex: 1; min-width: 150px;">
+            <input type="number" id="new-bar-price" placeholder="Цена" style="width: 100px;">
+            <button class="action-btn btn-start" onclick="addBarItem()" style="flex: none; width: auto;">Добавить товар</button>
+        </div>
+        <div id="bar-settings-list"></div>
+
+        <hr style="border-color: var(--card-border); margin: 25px 0;">
+
+        <h2>История смен</h2>
+        <div class="history-list" id="history-list"></div>
+    </div>
+
+    <!-- Модальное окно продажи -->
+    <div class="modal-overlay" id="sale-modal">
+        <div class="modal">
+            <h3>Продажа на <span id="modal-pc-name" style="color: var(--accent-orange)"></span></h3>
+            
+            <div class="modal-section-title">Добавлено в чек (клик — удалить):</div>
+            <div id="modal-added-list"></div>
+
+            <div class="modal-section-title">Доступные товары:</div>
+            <div class="modal-list" id="modal-items"></div>
+
+            <div class="modal-total">
+                <span>Бар итого:</span>
+                <span id="modal-total-price">0 ֏</span>
+            </div>
+
+            <div class="modal-actions">
+                <button class="action-btn btn-secondary" onclick="closeModal('sale-modal')">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно Чека -->
+    <div class="modal-overlay" id="receipt-modal">
+        <div class="modal">
+            <h3>Чек: <span id="receipt-pc-name"></span></h3>
+            
+            <div style="background: var(--bg-dark); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span>Время:</span>
+                    <span id="receipt-time" style="font-weight: bold;"></span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span>Игра:</span>
+                    <span id="receipt-game-cost" style="font-weight: bold;"></span>
+                </div>
+                <div id="receipt-bar-block" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span>Бар:</span>
+                        <span id="receipt-bar-cost" style="font-weight: bold; color: var(--accent-orange);"></span>
+                    </div>
+                    <div id="receipt-bar-items" style="font-size: 12px; color: var(--text-muted); padding-left: 10px;"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--card-border); margin-top: 10px; padding-top: 10px; font-size: 18px;">
+                    <span>ИТОГО:</span>
+                    <span id="receipt-total" style="color: var(--accent-green); font-weight: bold;"></span>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="action-btn btn-qr" onclick="showQRCode()" style="flex:1;">📱 QR-код</button>
+                <button class="action-btn btn-start" onclick="closeModal('receipt-modal')" style="flex:1;">Оплачено</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно QR-кода -->
+    <div class="modal-overlay" id="qr-modal">
+        <div class="modal">
+            <h3>📱 QR-код для клиента</h3>
+            <p style="color: var(--text-muted); font-size: 13px; margin-top:0;">Покажите клиенту для получения деталей чека</p>
+            <div class="qr-container">
+                <canvas id="qr-canvas" width="220" height="220"></canvas>
+                <div class="qr-link" id="qr-link-text"></div>
+            </div>
+            <div class="modal-actions">
+                <button class="action-btn btn-secondary" onclick="closeModal('qr-modal')" style="width:100%;">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно бронирования -->
+    <div class="modal-overlay" id="booking-modal">
+        <div class="modal">
+            <h3>📅 Бронирование: <span id="booking-pc-name" style="color: var(--accent-pink)"></span></h3>
+            <div class="booking-form">
+                <label>Имя клиента</label>
+                <input type="text" id="booking-client" placeholder="Например, Иван">
+                <label>Телефон</label>
+                <input type="tel" id="booking-phone" placeholder="+7 (___) ___-__-__">
+                <label>Дата и время начала</label>
+                <input type="datetime-local" id="booking-datetime">
+                <label>Длительность (мин)</label>
+                <input type="number" id="booking-duration" value="60" min="15" step="15">
+            </div>
+            <div id="booking-existing" class="booking-list"></div>
+            <div class="modal-actions" style="margin-top:15px;">
+                <button class="action-btn btn-secondary" onclick="closeModal('booking-modal')">Отмена</button>
+                <button class="action-btn btn-book" onclick="saveBooking()">Забронировать</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно подтверждения -->
+    <div class="modal-overlay" id="confirm-modal">
+        <div class="modal">
+            <h3 id="confirm-title">Подтверждение</h3>
+            <p id="confirm-text" style="color: var(--text-muted); margin-bottom: 20px;"></p>
+            <div class="modal-actions" id="confirm-actions">
+                <button class="action-btn btn-secondary" onclick="closeModal('confirm-modal')">Отмена</button>
+                <button class="action-btn btn-del" id="confirm-yes-btn">Да, удалить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно Закрытия смены -->
+    <div class="modal-overlay" id="close-shift-modal">
+        <div class="modal">
+            <div class="report-header">
+                <h3 style="margin: 0 0 5px 0;">📊 Отчет за смену</h3>
+                <div class="report-date" id="report-shift-date"></div>
+            </div>
+
+            <div class="report-grid">
+                <div class="report-card">
+                    <div class="report-card-label">Сессий</div>
+                    <div class="report-card-value blue" id="report-sessions">0</div>
+                </div>
+                <div class="report-card">
+                    <div class="report-card-label">Общее время</div>
+                    <div class="report-card-value blue" id="report-total-time">00:00:00</div>
+                </div>
+                <div class="report-card">
+                    <div class="report-card-label">Выручка с игр</div>
+                    <div class="report-card-value green" id="report-game-revenue">0 ֏</div>
+                </div>
+                <div class="report-card">
+                    <div class="report-card-label">Выручка с бара</div>
+                    <div class="report-card-value orange" id="report-bar-revenue">0 ֏</div>
+                </div>
+            </div>
+
+            <div class="report-total">
+                <div class="report-total-label">Общая выручка</div>
+                <div class="report-total-value" id="report-total-revenue">0 ֏</div>
+            </div>
+
+            <details class="report-details">
+                <summary>Детали по ПК</summary>
+                <div id="report-pc-details"></div>
+            </details>
+
+            <details class="report-details" id="report-bar-details-block" style="display: none;">
+                <summary>Проданные товары</summary>
+                <div id="report-bar-details"></div>
+            </details>
+
+            <div class="modal-actions">
+                <button class="action-btn btn-secondary" onclick="closeModal('close-shift-modal')">Отмена</button>
+                <button class="action-btn btn-purple" onclick="confirmCloseShift()">Закрыть смену</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно просмотра истории -->
+    <div class="modal-overlay" id="history-modal">
+        <div class="modal">
+            <h3>Отчет за <span id="history-modal-date"></span></h3>
+            
+            <div class="report-grid">
+                <div class="report-card">
+                    <div class="report-card-label">Сессий</div>
+                    <div class="report-card-value blue" id="history-modal-sessions">0</div>
+                </div>
+                <div class="report-card">
+                    <div class="report-card-label">Время</div>
+                    <div class="report-card-value blue" id="history-modal-time">00:00:00</div>
+                </div>
+                <div class="report-card">
+                    <div class="report-card-label">Игры</div>
+                    <div class="report-card-value green" id="history-modal-game">0 ֏</div>
+                </div>
+                <div class="report-card">
+                    <div class="report-card-label">Бар</div>
+                    <div class="report-card-value orange" id="history-modal-bar">0 ֏</div>
+                </div>
+            </div>
+
+            <div class="report-total">
+                <div class="report-total-label">Общая выручка</div>
+                <div class="report-total-value" id="history-modal-total">0 ֏</div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="action-btn btn-secondary" onclick="closeModal('history-modal')" style="width: 100%;">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'gameclub_full_v5';
+        
+        let state = {
+            pricePerHour: 1000,
+            computers: [],
+            barItems: [],
+            currentShift: {
+                startDate: null,
+                sessions: []
+            },
+            shiftHistory: [],
+            bookings: []
+        };
+
+        let currentSalePCIndex = null;
+        let currentReceiptData = null;
+
+        // === ИНИЦИАЛИЗАЦИЯ ===
+        function init() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    state = JSON.parse(saved);
+                    
+                    if (!state.currentShift) {
+                        state.currentShift = { startDate: new Date().toISOString(), sessions: [] };
+                    }
+                    if (!state.shiftHistory) state.shiftHistory = [];
+                    if (!state.currentShift.sessions) state.currentShift.sessions = [];
+                    if (!state.bookings) state.bookings = [];
+                    
+                    state.computers.forEach((pc, index) => {
+                        if (!pc.barItems) pc.barItems = [];
+                        if (!pc.status) pc.status = pc.isBusy ? 'busy' : 'free';
+                        if (pc.isBusy && pc.startTime && pc.status !== 'paused') {
+                            pc.elapsedSeconds = Math.floor((Date.now() - pc.startTime) / 1000);
+                            startTimerInterval(index);
+                        }
+                    });
+                } catch (e) {
+                    console.error("Ошибка загрузки, сброс...", e);
+                    createDefaultState();
+                }
+            } else {
+                createDefaultState();
+            }
+            updateUI();
+            startBookingsChecker();
+        }
+
+        function createDefaultState() {
+            state = {
+                pricePerHour: 1000,
+                computers: [
+                    { id: 1, name: 'ПК #1', isBusy: false, status: 'free', startTime: null, elapsedSeconds: 0, barItems: [] },
+                    { id: 2, name: 'ПК #2', isBusy: false, status: 'free', startTime: null, elapsedSeconds: 0, barItems: [] },
+                    { id: 3, name: 'ПК #3', isBusy: false, status: 'free', startTime: null, elapsedSeconds: 0, barItems: [] },
+                    { id: 4, name: 'ПК #4', isBusy: false, status: 'free', startTime: null, elapsedSeconds: 0, barItems: [] }
+                ],
+                barItems: [
+                    { id: 1, name: 'Coca-Cola', price: 150 },
+                    { id: 2, name: 'Чипсы', price: 100 },
+                    { id: 3, name: 'Кофе', price: 200 }
+                ],
+                currentShift: {
+                    startDate: new Date().toISOString(),
+                    sessions: []
+                },
+                shiftHistory: [],
+                bookings: []
+            };
+            saveState();
+        }
+
+        function saveState() {
+            const stateToSave = {
+                pricePerHour: state.pricePerHour,
+                computers: state.computers.map(pc => ({
+                    id: pc.id, name: pc.name, isBusy: pc.isBusy, status: pc.status,
+                    startTime: pc.startTime, elapsedSeconds: pc.elapsedSeconds, barItems: pc.barItems
+                })),
+                barItems: state.barItems,
+                currentShift: state.currentShift,
+                shiftHistory: state.shiftHistory,
+                bookings: state.bookings
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
+        }
+
+        // === УТИЛИТЫ ===
+        function formatTime(totalSeconds) {
+            const h = Math.floor(totalSeconds / 3600).toString().padStart(2, '0');
+            const m = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
+            const s = (totalSeconds % 60).toString().padStart(2, '0');
+            return `${h}:${m}:${s}`;
+        }
+
+        function formatDate(isoString) {
+            const d = new Date(isoString);
+            return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' }) 
+                + ' ' + d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function formatDateShort(isoString) {
+            const d = new Date(isoString);
+            return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        }
+
+        function formatDateCompact(isoString) {
+            const d = new Date(isoString);
+            const now = new Date();
+            const isToday = d.toDateString() === now.toDateString();
+            const tomorrow = new Date(now.getTime() + 86400000);
+            const isTomorrow = tomorrow.toDateString() === d.toDateString();
+            
+            let day;
+            if (isToday) day = 'Сегодня';
+            else if (isTomorrow) day = 'Завтра';
+            else day = d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+            
+            const time = d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+            return `${day} ${time}`;
+        }
+
+        function isMobileView() {
+            return window.innerWidth <= 700;
+        }
+
+        function calculateCost(totalSeconds) {
+            return Math.round((totalSeconds / 3600) * state.pricePerHour);
+        }
+
+        function calculateBarCost(pc) {
+            if (!pc.barItems) return 0;
+            return pc.barItems.reduce((sum, item) => sum + item.price, 0);
+        }
+
+        // === МОДАЛКИ (открытие/закрытие с блокировкой скролла) ===
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+            document.body.classList.add('modal-open');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+            const anyOpen = document.querySelector('.modal-overlay.active');
+            if (!anyOpen) document.body.classList.remove('modal-open');
+            if (id === 'sale-modal') currentSalePCIndex = null;
+        }
+
+        // === УВЕДОМЛЕНИЯ ===
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.transition = 'opacity 0.3s, transform 0.3s';
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(120%)';
+                setTimeout(() => toast.remove(), 300);
+            }, 5000);
+        }
+
+        // === БРОНИ: получение ближайшей будущей брони ===
+        function getUpcomingBooking(pcId) {
+            const now = new Date();
+            const upcoming = state.bookings
+                .filter(b => b.pcId === pcId && b.active && new Date(b.datetime) >= now)
+                .sort((a, b) => new Date(a.datetime) - new Date(b.datetime));
+            return upcoming[0] || null;
+        }
+
+        // === ВКЛАДКИ ===
+        function switchTab(tabId, btnElement) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            
+            btnElement.classList.add('active');
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+
+            if (tabId === 'stats') {
+                const activeBtn = document.querySelector('.stats-btn.active') || document.querySelector('.stats-btn');
+                renderStats(parseInt(activeBtn.dataset.period) || 7, activeBtn);
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('header-price').textContent = `Тариф: ${state.pricePerHour} ֏ / час`;
+            document.getElementById('setting-price').value = state.pricePerHour;
+            
+            if (state.currentShift && state.currentShift.startDate) {
+                document.getElementById('shift-date').textContent = formatDateShort(state.currentShift.startDate);
+            }
+            
+            renderPCs();
+            renderBarTab();
+            renderSettings();
+        }
+
+        // === ВКЛАДКА ПК ===
+        function renderPCs() {
+            const grid = document.getElementById('pc-grid');
+            grid.innerHTML = '';
+
+            const mobile = isMobileView();
+
+            state.computers.forEach((pc, index) => {
+                const card = document.createElement('div');
+                
+                const upcomingBooking = getUpcomingBooking(pc.id);
+                let minutesUntilBooking = null;
+                if (upcomingBooking) {
+                    minutesUntilBooking = Math.round((new Date(upcomingBooking.datetime) - new Date()) / 1000 / 60);
+                }
+                
+                const isSoonBooking = upcomingBooking && minutesUntilBooking !== null && minutesUntilBooking <= 15;
+                
+                card.className = `card ${pc.isBusy ? 'busy' : ''} ${pc.status === 'paused' ? 'paused' : ''} ${isSoonBooking ? 'soon-booking' : ''}`;
+                
+                const barTotal = calculateBarCost(pc);
+                const barText = barTotal > 0 ? `Бар: +${barTotal} ֏` : '';
+
+                // Бейджи
+                let badge = '';
+                if (pc.status === 'paused') {
+                    badge = '<div class="pause-badge">⏸ Пауза</div>';
+                } else if (upcomingBooking && !pc.isBusy) {
+                    badge = '<div class="reserved-badge">📅 Бронь</div>';
+                }
+
+                // Информация о брони
+                let bookingInfo = '';
+                if (upcomingBooking) {
+                    const bookingDateStr = mobile 
+                        ? formatDateCompact(upcomingBooking.datetime) 
+                        : formatDate(upcomingBooking.datetime);
+                    
+                    if (pc.isBusy && minutesUntilBooking !== null) {
+                        if (minutesUntilBooking <= 15 && minutesUntilBooking > 0) {
+                            bookingInfo = `<div class="reserved-info" style="color:var(--accent-red);">⚠️ Бронь через ${minutesUntilBooking} мин (${upcomingBooking.client})</div>`;
+                        } else if (minutesUntilBooking > 15) {
+                            const h = Math.floor(minutesUntilBooking / 60);
+                            const m = minutesUntilBooking % 60;
+                            const timeStr = h > 0 ? `${h} ч ${m} мин` : `${m} мин`;
+                            bookingInfo = `<div class="reserved-info">⏰ Бронь через ${timeStr} (${upcomingBooking.client})</div>`;
+                        } else {
+                            bookingInfo = `<div class="reserved-info" style="color:var(--accent-red);">🔴 Бронь активна: ${upcomingBooking.client}</div>`;
+                        }
+                    } else {
+                        bookingInfo = `<div class="reserved-info">📅 ${bookingDateStr} — ${upcomingBooking.client} (${upcomingBooking.duration} мин)</div>`;
+                    }
+                }
+
+                if (pc.isBusy) {
+                    const isPaused = pc.status === 'paused';
+                    card.innerHTML = `
+                        ${badge}
+                        <div class="pc-title">${pc.name}</div>
+                        <div class="pc-status">Статус: ${isPaused ? '⏸ На паузе' : 'Занят'}</div>
+                        <div class="display-area" id="display-${pc.id}">${formatTime(pc.elapsedSeconds)}</div>
+                        <div class="cost-area" id="cost-${pc.id}">Игра: ${calculateCost(pc.elapsedSeconds)} ֏</div>
+                        <div class="bar-cost-area">${barText}</div>
+                        ${bookingInfo}
+                        <div class="btn-group">
+                            <button class="action-btn btn-bar" onclick="openSaleModal(${index})">🍔<span class="hide-mobile"> Бар</span></button>
+                            ${isPaused 
+                                ? `<button class="action-btn btn-resume" onclick="resumeSession(${index})">▶<span class="hide-mobile"> Продолжить</span></button>`
+                                : `<button class="action-btn btn-pause" onclick="pauseSession(${index})">⏸<span class="hide-mobile"> Пауза</span></button>`
+                            }
+                            <button class="action-btn btn-stop" onclick="stopSession(${index})">⏹<span class="hide-mobile"> Стоп</span></button>
+                        </div>
+                    `;
+                } else {
+                    card.innerHTML = `
+                        ${badge}
+                        <div class="pc-title">${pc.name}</div>
+                        <div class="pc-status">Статус: Свободен</div>
+                        <div class="display-area">--:--:--</div>
+                        <div class="cost-area">0 ֏</div>
+                        <div class="bar-cost-area">${barText}</div>
+                        ${bookingInfo}
+                        <div class="btn-group">
+                            <button class="action-btn btn-start" onclick="startSession(${index})">▶<span class="hide-mobile"> Начать</span></button>
+                            <button class="action-btn btn-book" onclick="openBookingModal(${index})">📅</button>
+                        </div>
+                    `;
+                }
+                grid.appendChild(card);
+            });
+        }
+
+        // === ТАЙМЕР ===
+        function startTimerInterval(index) {
+            const pc = state.computers[index];
+            if (pc.timerInterval) clearInterval(pc.timerInterval);
+
+            pc.timerInterval = setInterval(() => {
+                if (!pc.isBusy || !pc.startTime || pc.status === 'paused') return;
+                pc.elapsedSeconds = Math.floor((Date.now() - pc.startTime) / 1000);
+                
+                const displayEl = document.getElementById(`display-${pc.id}`);
+                const costEl = document.getElementById(`cost-${pc.id}`);
+                if (displayEl && costEl) {
+                    displayEl.textContent = formatTime(pc.elapsedSeconds);
+                    costEl.textContent = `Игра: ${calculateCost(pc.elapsedSeconds)} ֏`;
+                }
+                if (pc.elapsedSeconds % 60 === 0) saveState();
+            }, 1000);
+        }
+
+        // === СТАРТ СЕССИИ с проверкой брони ===
+        function startSession(index) {
+            const pc = state.computers[index];
+            if (pc.isBusy) return;
+            
+            const upcomingBooking = getUpcomingBooking(pc.id);
+            
+            if (upcomingBooking) {
+                const bookingTime = new Date(upcomingBooking.datetime);
+                const now = new Date();
+                const minutesUntilBooking = (bookingTime - now) / 1000 / 60;
+                
+                if (minutesUntilBooking < 15 && minutesUntilBooking > 0) {
+                    showConfirm(
+                        "⚠️ Скоро бронь",
+                        `Через ${Math.round(minutesUntilBooking)} мин. на этот ПК придёт клиент (${upcomingBooking.client}). Всё равно начать?`,
+                        () => reallyStartSession(index),
+                        "Всё равно начать"
+                    );
+                    return;
+                }
+                
+                if (minutesUntilBooking <= 0) {
+                    showConfirm(
+                        "⚠️ Бронь активна",
+                        `На это время (${formatDate(upcomingBooking.datetime)}) есть бронь для ${upcomingBooking.client}. Начать сессию?`,
+                        () => reallyStartSession(index),
+                        "Начать"
+                    );
+                    return;
+                }
+            }
+            
+            reallyStartSession(index);
+        }
+
+        function reallyStartSession(index) {
+            const pc = state.computers[index];
+            pc.isBusy = true;
+            pc.status = 'busy';
+            pc.startTime = Date.now();
+            pc.elapsedSeconds = 0;
+            pc.barItems = [];
+
+            saveState();
+            renderPCs();
+            startTimerInterval(index);
+        }
+
+        // === ПАУЗА ===
+        function pauseSession(index) {
+            const pc = state.computers[index];
+            if (!pc.isBusy || pc.status === 'paused') return;
+            
+            if (pc.timerInterval) clearInterval(pc.timerInterval);
+            pc.status = 'paused';
+            pc.pausedAt = Date.now();
+            pc.startTime = null;
+            
+            saveState();
+            renderPCs();
+        }
+
+        function resumeSession(index) {
+            const pc = state.computers[index];
+            if (!pc.isBusy || pc.status !== 'paused') return;
+            
+            pc.startTime = Date.now() - (pc.elapsedSeconds * 1000);
+            pc.status = 'busy';
+            pc.pausedAt = null;
+            
+            saveState();
+            renderPCs();
+            startTimerInterval(index);
+        }
+
+        function stopSession(index) {
+            const pc = state.computers[index];
+            if (!pc.isBusy) return;
+            if (pc.timerInterval) clearInterval(pc.timerInterval);
+            
+            const gameCost = calculateCost(pc.elapsedSeconds);
+            const barCost = calculateBarCost(pc);
+            const total = gameCost + barCost;
+            const timeString = formatTime(pc.elapsedSeconds);
+
+            if (!state.currentShift.sessions) state.currentShift.sessions = [];
+            state.currentShift.sessions.push({
+                pcName: pc.name,
+                pcId: pc.id,
+                duration: pc.elapsedSeconds,
+                gameCost: gameCost,
+                barCost: barCost,
+                total: total,
+                barItems: [...pc.barItems],
+                endTime: new Date().toISOString()
+            });
+
+            currentReceiptData = {
+                pcName: pc.name,
+                time: timeString,
+                gameCost,
+                barCost,
+                total,
+                barItems: [...pc.barItems],
+                date: new Date().toISOString()
+            };
+
+            showReceipt(pc, timeString, gameCost, barCost, total);
+
+            pc.isBusy = false;
+            pc.status = 'free';
+            pc.startTime = null;
+            pc.elapsedSeconds = 0;
+            pc.barItems = [];
+            pc.timerInterval = null;
+            pc.pausedAt = null;
+
+            saveState();
+            renderPCs();
+        }
+
+        function showReceipt(pc, timeString, gameCost, barCost, total) {
+            document.getElementById('receipt-pc-name').textContent = pc.name;
+            document.getElementById('receipt-time').textContent = timeString;
+            document.getElementById('receipt-game-cost').textContent = `${gameCost} ֏`;
+            
+            if (barCost > 0 && pc.barItems && pc.barItems.length > 0) {
+                document.getElementById('receipt-bar-block').style.display = 'block';
+                document.getElementById('receipt-bar-cost').textContent = `${barCost} ֏`;
+                document.getElementById('receipt-bar-items').innerHTML = pc.barItems.map(i => `• ${i.name} — ${i.price} ֏`).join('<br>');
+            } else {
+                document.getElementById('receipt-bar-block').style.display = 'none';
+            }
+            
+            document.getElementById('receipt-total').textContent = `${total} ֏`;
+            openModal('receipt-modal');
+        }
+
+        // === QR-КОД ===
+        function showQRCode() {
+            if (!currentReceiptData) return;
+            
+            let text = `GameClub Чек\n`;
+            text += `ПК: ${currentReceiptData.pcName}\n`;
+            text += `Время: ${currentReceiptData.time}\n`;
+            text += `Игра: ${currentReceiptData.gameCost} ֏\n`;
+            if (currentReceiptData.barCost > 0) {
+                text += `Бар: ${currentReceiptData.barCost} ֏\n`;
+                currentReceiptData.barItems.forEach(i => {
+                    text += `  • ${i.name} — ${i.price} ֏\n`;
+                });
+            }
+            text += `ИТОГО: ${currentReceiptData.total} ֏\n`;
+            text += `${formatDate(currentReceiptData.date)}`;
+            
+            document.getElementById('qr-link-text').textContent = text;
+            
+            const canvas = document.getElementById('qr-canvas');
+            drawQRCode(canvas, text);
+            
+            openModal('qr-modal');
+        }
+
+        function drawQRCode(canvas, text) {
+            const ctx = canvas.getContext('2d');
+            const size = 220;
+            const modules = 25;
+            const moduleSize = size / modules;
+            
+            function hashCode(str) {
+                let hash = 0;
+                for (let i = 0; i < str.length; i++) {
+                    const char = str.charCodeAt(i);
+                    hash = ((hash << 5) - hash) + char;
+                    hash = hash & hash;
+                }
+                return Math.abs(hash);
+            }
+            
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0, 0, size, size);
+            
+            const hash = hashCode(text);
+            const grid = [];
+            for (let y = 0; y < modules; y++) {
+                grid[y] = [];
+                for (let x = 0; x < modules; x++) {
+                    const val = ((hash * (x + 1) * (y + 1) * 31) + (x * 17) + (y * 13)) % 100;
+                    grid[y][x] = val > 50;
+                }
+            }
+            
+            function drawFinder(px, py) {
+                ctx.fillStyle = '#000';
+                ctx.fillRect(px * moduleSize, py * moduleSize, 7 * moduleSize, 7 * moduleSize);
+                ctx.fillStyle = '#fff';
+                ctx.fillRect((px + 1) * moduleSize, (py + 1) * moduleSize, 5 * moduleSize, 5 * moduleSize);
+                ctx.fillStyle = '#000';
+                ctx.fillRect((px + 2) * moduleSize, (py + 2) * moduleSize, 3 * moduleSize, 3 * moduleSize);
+            }
+            
+            for (let y = 0; y < 8; y++) {
+                for (let x = 0; x < 8; x++) {
+                    grid[y][x] = false;
+                    grid[y][modules - 1 - x] = false;
+                    grid[modules - 1 - y][x] = false;
+                }
+            }
+            
+            ctx.fillStyle = '#000';
+            for (let y = 0; y < modules; y++) {
+                for (let x = 0; x < modules; x++) {
+                    if (grid[y] && grid[y][x]) {
+                        ctx.fillRect(x * moduleSize, y * moduleSize, moduleSize, moduleSize);
+                    }
+                }
+            }
+            
+            drawFinder(0, 0);
+            drawFinder(modules - 7, 0);
+            drawFinder(0, modules - 7);
+        }
+
+        // === БРОНИРОВАНИЕ ===
+        function openBookingModal(pcIndex) {
+            const pc = state.computers[pcIndex];
+            document.getElementById('booking-pc-name').textContent = pc.name;
+            
+            const now = new Date();
+            now.setHours(now.getHours() + 1);
+            now.setMinutes(0);
+            const tzOffset = now.getTimezoneOffset() * 60000;
+            const localISOTime = new Date(now.getTime() - tzOffset).toISOString().slice(0, 16);
+            document.getElementById('booking-datetime').value = localISOTime;
+            
+            renderBookingList(pc.id);
+            
+            document.getElementById('booking-modal').dataset.pcIndex = pcIndex;
+            openModal('booking-modal');
+        }
+
+        function renderBookingList(pcId) {
+            const list = document.getElementById('booking-existing');
+            const bookings = state.bookings.filter(b => b.pcId === pcId && b.active)
+                .sort((a, b) => new Date(a.datetime) - new Date(b.datetime));
+            
+            if (bookings.length === 0) {
+                list.innerHTML = '<p class="empty-text" style="padding:10px;">Нет активных броней</p>';
+                return;
+            }
+            
+            list.innerHTML = bookings.map(b => `
+                <div class="booking-item">
+                    <div class="booking-item-info">
+                        <span class="booking-item-time">📅 ${formatDate(b.datetime)}</span>
+                        <span class="booking-item-client">${b.client} ${b.phone ? '• ' + b.phone : ''} • ${b.duration} мин</span>
+                    </div>
+                    <button class="action-btn btn-del" onclick="cancelBooking(${b.id})" style="flex:none; width:auto; padding:6px 12px; font-size:12px;">✕</button>
+                </div>
+            `).join('');
+        }
+
+        function saveBooking() {
+            const modal = document.getElementById('booking-modal');
+            const pcIndex = parseInt(modal.dataset.pcIndex);
+            const pc = state.computers[pcIndex];
+            
+            const client = document.getElementById('booking-client').value.trim();
+            const phone = document.getElementById('booking-phone').value.trim();
+            const datetime = document.getElementById('booking-datetime').value;
+            const duration = parseInt(document.getElementById('booking-duration').value) || 60;
+            
+            if (!client || !datetime) {
+                showConfirm("Ошибка", "Заполните имя клиента и время.", null, "OK");
+                return;
+            }
+            
+            const newId = state.bookings.length > 0 ? Math.max(...state.bookings.map(b => b.id)) + 1 : 1;
+            state.bookings.push({
+                id: newId,
+                pcId: pc.id,
+                pcName: pc.name,
+                client,
+                phone,
+                datetime,
+                duration,
+                active: true,
+                createdAt: new Date().toISOString()
+            });
+            
+            saveState();
+            closeModal('booking-modal');
+            renderPCs();
+            
+            document.getElementById('booking-client').value = '';
+            document.getElementById('booking-phone').value = '';
+            
+            showToast(`📅 Бронь создана: ${pc.name} — ${client}`, 'success');
+        }
+
+        function cancelBooking(bookingId) {
+            showConfirm("Отмена брони", "Удалить эту бронь?", () => {
+                const idx = state.bookings.findIndex(b => b.id === bookingId);
+                if (idx !== -1) state.bookings.splice(idx, 1);
+                saveState();
+                
+                const modal = document.getElementById('booking-modal');
+                if (modal.classList.contains('active')) {
+                    const pcIndex = parseInt(modal.dataset.pcIndex);
+                    renderBookingList(state.computers[pcIndex].id);
+                }
+                renderPCs();
+            });
+        }
+
+        // === АВТОПРОВЕРКА БРОНЕЙ ===
+        function startBookingsChecker() {
+            setInterval(checkBookings, 30000);
+            checkBookings();
+        }
+
+        function checkBookings() {
+            const now = new Date();
+            let changed = false;
+            
+            state.bookings.forEach(booking => {
+                if (!booking.active) return;
+                
+                const bookingTime = new Date(booking.datetime);
+                const diffMin = (bookingTime - now) / 1000 / 60;
+                const pc = state.computers.find(p => p.id === booking.pcId);
+                
+                if (!pc) return;
+                
+                // За 5 минут до брони и ПК занят
+                if (diffMin <= 5 && diffMin > 0 && pc.isBusy && !booking.notified) {
+                    booking.notified = true;
+                    changed = true;
+                    showToast(`⚠️ Через 5 мин бронь на ${pc.name} для ${booking.client}`, 'warning');
+                }
+                
+                // Время брони наступило, ПК свободен
+                if (diffMin <= 0 && diffMin > -5 && !pc.isBusy && !booking.startedNotified) {
+                    booking.startedNotified = true;
+                    changed = true;
+                    showToast(`📅 Бронь на ${pc.name} активна! Клиент: ${booking.client}`, 'info');
+                }
+                
+                // Просрочка 15 минут — снимаем бронь
+                if (diffMin < -15 && !pc.isBusy) {
+                    booking.active = false;
+                    changed = true;
+                    showToast(`❌ Бронь на ${pc.name} (${booking.client}) истекла — клиент не пришёл`, 'warning');
+                }
+            });
+            
+            if (changed) {
+                saveState();
+                renderPCs();
+            }
+        }
+
+        // === ВКЛАДКА БАР ===
+        function renderBarTab() {
+            const list = document.getElementById('bar-list');
+            list.innerHTML = '';
+            
+            if (state.barItems.length === 0) {
+                list.innerHTML = '<p class="empty-text">Товары не добавлены. Перейдите в Настройки.</p>';
+                return;
+            }
+
+            state.barItems.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'list-item';
+                div.innerHTML = `
+                    <div class="item-info">
+                        <span>${item.name}</span>
+                        <span class="item-price">${item.price} ֏</span>
+                    </div>
+                    <button class="action-btn btn-bar" onclick="quickSale(${item.id})" style="flex: none; width: auto;">Продать</button>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function quickSale(itemId) {
+            const item = state.barItems.find(i => i.id === itemId);
+            if (!item) return;
+            
+            const busyPCs = state.computers.filter(pc => pc.isBusy);
+            if (busyPCs.length === 0) {
+                showConfirm("Нет занятых ПК", "Нет ни одного занятого ПК, чтобы добавить товар.", null, "OK");
+                return;
+            }
+
+            if (busyPCs.length === 1) {
+                const pcIndex = state.computers.findIndex(p => p.id === busyPCs[0].id);
+                addItemToPC(pcIndex, item);
+                return;
+            }
+
+            openSaleModalForItem(item);
+        }
+
+        function openSaleModalForItem(item) {
+            const busyPCs = state.computers.filter(pc => pc.isBusy);
+            
+            const modal = document.getElementById('confirm-modal');
+            document.getElementById('confirm-title').textContent = `Куда добавить "${item.name}"?`;
+            document.getElementById('confirm-text').innerHTML = `Выберите ПК:`;
+            
+            const actionsDiv = document.getElementById('confirm-actions');
+            actionsDiv.innerHTML = '';
+            
+            busyPCs.forEach(pc => {
+                const btn = document.createElement('button');
+                btn.className = 'action-btn btn-edit';
+                btn.textContent = pc.name;
+                btn.onclick = () => {
+                    const pcIndex = state.computers.findIndex(p => p.id === pc.id);
+                    addItemToPC(pcIndex, item);
+                    closeModal('confirm-modal');
+                };
+                actionsDiv.appendChild(btn);
+            });
+            
+            const cancelBtn = document.createElement('button');
+            cancelBtn.className = 'action-btn btn-secondary';
+            cancelBtn.textContent = 'Отмена';
+            cancelBtn.onclick = () => closeModal('confirm-modal');
+            actionsDiv.appendChild(cancelBtn);
+            
+            openModal('confirm-modal');
+        }
+
+        // === МОДАЛЬНОЕ ОКНО ПРОДАЖИ ===
+        function openSaleModal(pcIndex) {
+            currentSalePCIndex = pcIndex;
+            const pc = state.computers[pcIndex];
+            document.getElementById('modal-pc-name').textContent = pc.name;
+            
+            renderSaleModal();
+            openModal('sale-modal');
+        }
+
+        function renderSaleModal() {
+            if (currentSalePCIndex === null) return;
+            const pc = state.computers[currentSalePCIndex];
+            
+            const addedList = document.getElementById('modal-added-list');
+            addedList.innerHTML = '';
+            if (pc.barItems && pc.barItems.length > 0) {
+                pc.barItems.forEach((item, idx) => {
+                    const div = document.createElement('div');
+                    div.className = 'added-item';
+                    div.innerHTML = `<span>${item.name}</span><span>${item.price} ֏ ✕</span>`;
+                    div.title = 'Нажмите чтобы удалить';
+                    div.onclick = () => {
+                        pc.barItems.splice(idx, 1);
+                        saveState();
+                        renderSaleModal();
+                        renderPCs();
+                    };
+                    addedList.appendChild(div);
+                });
+            } else {
+                addedList.innerHTML = '<div class="empty-text">Пока ничего не добавлено</div>';
+            }
+
+            const itemsList = document.getElementById('modal-items');
+            itemsList.innerHTML = '';
+            if (state.barItems.length === 0) {
+                itemsList.innerHTML = '<div class="empty-text">Бар пуст</div>';
+            } else {
+                state.barItems.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'modal-item';
+                    div.innerHTML = `<span>${item.name}</span> <span class="item-price">${item.price} ֏</span>`;
+                    div.onclick = () => {
+                        addItemToPC(currentSalePCIndex, item);
+                        renderSaleModal();
+                    };
+                    itemsList.appendChild(div);
+                });
+            }
+
+            document.getElementById('modal-total-price').textContent = `${calculateBarCost(pc)} ֏`;
+        }
+
+        function addItemToPC(pcIndex, item) {
+            const pc = state.computers[pcIndex];
+            if (!pc.isBusy) {
+                showConfirm("ПК свободен", "Этот ПК уже не занят.", null, "OK");
+                return;
+            }
+            if (!pc.barItems) pc.barItems = [];
+            
+            pc.barItems.push({ name: item.name, price: item.price });
+            saveState();
+            renderPCs();
+        }
+
+        // === НАСТРОЙКИ ===
+        function renderSettings() {
+            const pcList = document.getElementById('pc-settings-list');
+            pcList.innerHTML = '';
+            state.computers.forEach((pc, index) => {
+                const div = document.createElement('div');
+                div.className = 'list-item';
+                div.innerHTML = `
+                    <span>${pc.name} ${pc.isBusy ? '<span style="color:var(--accent-green)">(Занят)</span>' : ''} ${pc.status === 'paused' ? '<span style="color:var(--accent-yellow)">(Пауза)</span>' : ''}</span>
+                    <button class="action-btn btn-del" onclick="confirmRemovePC(${index})" style="flex: none; width: auto; padding: 6px 12px; font-size: 12px;">Удалить</button>
+                `;
+                pcList.appendChild(div);
+            });
+
+            const barList = document.getElementById('bar-settings-list');
+            barList.innerHTML = '';
+            state.barItems.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'list-item';
+                div.innerHTML = `
+                    <div class="item-info">
+                        <input type="text" value="${item.name}" onchange="editBarItem(${index}, 'name', this.value)" style="width: 150px;">
+                        <input type="number" value="${item.price}" onchange="editBarItem(${index}, 'price', this.value)" style="width: 80px;">
+                    </div>
+                    <button class="action-btn btn-del" onclick="removeBarItem(${index})" style="flex: none; width: auto; padding: 6px 12px; font-size: 12px;">Удалить</button>
+                `;
+                barList.appendChild(div);
+            });
+
+            renderShiftHistory();
+        }
+
+        function renderShiftHistory() {
+            const list = document.getElementById('history-list');
+            list.innerHTML = '';
+            
+            if (!state.shiftHistory || state.shiftHistory.length === 0) {
+                list.innerHTML = '<p class="empty-text">Закрытых смен пока нет</p>';
+                return;
+            }
+            
+            const history = [...state.shiftHistory].reverse().slice(0, 10);
+            
+            history.forEach((shift, idx) => {
+                const realIdx = state.shiftHistory.length - 1 - idx;
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                div.onclick = () => openHistoryModal(realIdx);
+                div.innerHTML = `
+                    <div>
+                        <div style="font-weight: bold;">${formatDateShort(shift.startDate)}</div>
+                        <div class="history-item-date">${shift.sessions.length} сессий</div>
+                    </div>
+                    <div class="history-item-total">${shift.totalRevenue} ֏</div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function savePrice() {
+            const val = parseInt(document.getElementById('setting-price').value);
+            if (val > 0) {
+                state.pricePerHour = val;
+                saveState();
+                updateUI();
+            }
+        }
+
+        function addPC() {
+            const nameInput = document.getElementById('new-pc-name');
+            const name = nameInput.value.trim();
+            if (!name) return;
+            
+            const newId = state.computers.length > 0 ? Math.max(...state.computers.map(p => p.id)) + 1 : 1;
+            state.computers.push({ id: newId, name: name, isBusy: false, status: 'free', startTime: null, elapsedSeconds: 0, barItems: [] });
+            nameInput.value = '';
+            saveState();
+            updateUI();
+        }
+
+        function confirmRemovePC(index) {
+            const pc = state.computers[index];
+            const text = pc.isBusy 
+                ? `ПК "${pc.name}" сейчас ЗАНЯТ. Сессия будет потеряна. Продолжить?`
+                : `Удалить ПК "${pc.name}"?`;
+            
+            showConfirm("Удаление ПК", text, () => {
+                if (pc.timerInterval) clearInterval(pc.timerInterval);
+                state.computers.splice(index, 1);
+                saveState();
+                updateUI();
+            });
+        }
+
+        function addBarItem() {
+            const nameInput = document.getElementById('new-bar-name');
+            const priceInput = document.getElementById('new-bar-price');
+            const name = nameInput.value.trim();
+            const price = parseInt(priceInput.value);
+
+            if (!name || isNaN(price) || price <= 0) return;
+
+            const newId = state.barItems.length > 0 ? Math.max(...state.barItems.map(i => i.id)) + 1 : 1;
+            state.barItems.push({ id: newId, name: name, price: price });
+            
+            nameInput.value = '';
+            priceInput.value = '';
+            saveState();
+            updateUI();
+        }
+
+        function editBarItem(index, field, value) {
+            if (field === 'price') value = parseInt(value);
+            if (field === 'name' && !value.trim()) return;
+            state.barItems[index][field] = value;
+            saveState();
+            updateUI();
+        }
+
+        function removeBarItem(index) {
+            state.barItems.splice(index, 1);
+            saveState();
+            updateUI();
+        }
+
+        // === СТАТИСТИКА ===
+        function renderStats(days, btn) {
+            document.querySelectorAll('.stats-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+
+            const now = new Date();
+            const startDate = new Date(now);
+            startDate.setDate(startDate.getDate() - days + 1);
+            startDate.setHours(0, 0, 0, 0);
+
+            let allSessions = [];
+            
+            if (state.currentShift && state.currentShift.sessions) {
+                state.currentShift.sessions.forEach(s => {
+                    allSessions.push({ ...s, shiftDate: state.currentShift.startDate });
+                });
+            }
+            
+            state.shiftHistory.forEach(shift => {
+                shift.sessions.forEach(s => {
+                    allSessions.push({ ...s, shiftDate: shift.startDate, endTime: s.endTime || shift.endDate });
+                });
+            });
+
+            const filtered = allSessions.filter(s => {
+                const d = new Date(s.endTime || s.shiftDate);
+                return d >= startDate && d <= now;
+            });
+
+            const dailyData = {};
+            for (let i = 0; i < days; i++) {
+                const d = new Date(startDate);
+                d.setDate(d.getDate() + i);
+                const key = d.toISOString().slice(0, 10);
+                dailyData[key] = { game: 0, bar: 0, total: 0, sessions: 0 };
+            }
+
+            let totalGame = 0, totalBar = 0;
+            filtered.forEach(s => {
+                const d = new Date(s.endTime || s.shiftDate);
+                const key = d.toISOString().slice(0, 10);
+                if (dailyData[key]) {
+                    dailyData[key].game += s.gameCost;
+                    dailyData[key].bar += s.barCost;
+                    dailyData[key].total += s.total;
+                    dailyData[key].sessions++;
+                }
+                totalGame += s.gameCost;
+                totalBar += s.barCost;
+            });
+
+            const chartEl = document.getElementById('chart-bars');
+            chartEl.innerHTML = '';
+            
+            const maxVal = Math.max(...Object.values(dailyData).map(d => d.total), 1);
+            
+            Object.entries(dailyData).forEach(([key, data]) => {
+                const dateObj = new Date(key);
+                const label = dateObj.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+                
+                const wrapper = document.createElement('div');
+                wrapper.className = 'chart-bar-wrapper';
+                
+                const gameH = maxVal > 0 ? (data.game / maxVal) * 100 : 0;
+                const barH = maxVal > 0 ? (data.bar / maxVal) * 100 : 0;
+                
+                wrapper.innerHTML = `
+                    <div class="chart-value">${data.total > 0 ? data.total + '֏' : ''}</div>
+                    <div style="display:flex; flex-direction:column; width:100%; align-items:center; height:100%; justify-content:flex-end;">
+                        <div class="chart-bar game" style="height:${gameH}%; width:100%; border-radius:4px 4px 0 0; ${barH > 0 ? 'border-radius:0;' : ''}"></div>
+                        <div class="chart-bar bar" style="height:${barH}%; width:100%; border-radius:${gameH > 0 ? '0 0 4px 4px' : '4px 4px 0 0'};"></div>
+                    </div>
+                    <div class="chart-label">${label}</div>
+                `;
+                chartEl.appendChild(wrapper);
+            });
+
+            document.getElementById('stats-shifts').textContent = state.shiftHistory.filter(s => new Date(s.startDate) >= startDate).length + (state.currentShift ? 1 : 0);
+            document.getElementById('stats-sessions').textContent = filtered.length;
+            document.getElementById('stats-game').textContent = `${totalGame} ֏`;
+            document.getElementById('stats-bar').textContent = `${totalBar} ֏`;
+            document.getElementById('stats-total').textContent = `${totalGame + totalBar} ֏`;
+            document.getElementById('stats-total-revenue').textContent = `${totalGame + totalBar} ֏`;
+
+            const itemCount = {};
+            filtered.forEach(s => {
+                if (s.barItems) {
+                    s.barItems.forEach(item => {
+                        if (!itemCount[item.name]) itemCount[item.name] = { count: 0, total: 0 };
+                        itemCount[item.name].count++;
+                        itemCount[item.name].total += item.price;
+                    });
+                }
+            });
+
+            const topItems = Object.entries(itemCount)
+                .sort((a, b) => b[1].total - a[1].total)
+                .slice(0, 5);
+
+            document.getElementById('stats-top-items').innerHTML = topItems.length > 0
+                ? topItems.map(([name, data], i) => `
+                    <div class="report-pc-row">
+                        <span>${['🥇','🥈','🥉','4️⃣','5️⃣'][i]} ${name} × ${data.count}</span>
+                        <span style="color: var(--accent-orange); font-weight: bold;">${data.total} ֏</span>
+                    </div>
+                `).join('')
+                : '<p class="empty-text">Нет данных</p>';
+
+            const pcRevenue = {};
+            filtered.forEach(s => {
+                if (!pcRevenue[s.pcName]) pcRevenue[s.pcName] = { sessions: 0, time: 0, total: 0 };
+                pcRevenue[s.pcName].sessions++;
+                pcRevenue[s.pcName].time += s.duration;
+                pcRevenue[s.pcName].total += s.total;
+            });
+
+            const topPCs = Object.entries(pcRevenue)
+                .sort((a, b) => b[1].total - a[1].total)
+                .slice(0, 5);
+
+            document.getElementById('stats-top-pcs').innerHTML = topPCs.length > 0
+                ? topPCs.map(([name, data], i) => `
+                    <div class="report-pc-row">
+                        <span>${['🥇','🥈','🥉','4️⃣','5️⃣'][i]} <b>${name}</b> (${data.sessions} сессий, ${formatTime(data.time)})</span>
+                        <span style="color: var(--accent-green); font-weight: bold;">${data.total} ֏</span>
+                    </div>
+                `).join('')
+                : '<p class="empty-text">Нет данных</p>';
+        }
+
+        // === ПОДТВЕРЖДЕНИЕ ===
+        function showConfirm(title, text, callback, okText = 'Да, удалить') {
+            document.getElementById('confirm-title').textContent = title;
+            document.getElementById('confirm-text').textContent = text;
+            
+            const actionsDiv = document.getElementById('confirm-actions');
+            
+            if (callback) {
+                actionsDiv.innerHTML = `
+                    <button class="action-btn btn-secondary" onclick="closeModal('confirm-modal')">Отмена</button>
+                    <button class="action-btn btn-del" id="confirm-yes-btn">${okText}</button>
+                `;
+                document.getElementById('confirm-yes-btn').onclick = () => {
+                    callback();
+                    closeModal('confirm-modal');
+                };
+            } else {
+                actionsDiv.innerHTML = `
+                    <button class="action-btn btn-edit" onclick="closeModal('confirm-modal')" style="width: 100%;">${okText}</button>
+                `;
+            }
+            
+            openModal('confirm-modal');
+        }
+
+        // === ЗАКРЫТИЕ СМЕНЫ ===
+        function openCloseShiftModal() {
+            const busyPCs = state.computers.filter(pc => pc.isBusy);
+            if (busyPCs.length > 0) {
+                showConfirm(
+                    "Нельзя закрыть смену", 
+                    `Есть ${busyPCs.length} занятых ПК: ${busyPCs.map(p => p.name).join(', ')}. Сначала завершите все сессии.`, 
+                    null, 
+                    "Понятно"
+                );
+                return;
+            }
+
+            if (!state.currentShift || !state.currentShift.sessions || state.currentShift.sessions.length === 0) {
+                showConfirm(
+                    "Смена пуста", 
+                    "За эту смену не было ни одной завершенной сессии. Закрыть смену?", 
+                    () => performCloseShift(), 
+                    "Да, закрыть"
+                );
+                return;
+            }
+
+            const shift = state.currentShift;
+            const sessions = shift.sessions;
+            
+            const totalSessions = sessions.length;
+            const totalTime = sessions.reduce((sum, s) => sum + s.duration, 0);
+            const totalGameRevenue = sessions.reduce((sum, s) => sum + s.gameCost, 0);
+            const totalBarRevenue = sessions.reduce((sum, s) => sum + s.barCost, 0);
+            const totalRevenue = totalGameRevenue + totalBarRevenue;
+
+            document.getElementById('report-shift-date').textContent = `Начало: ${formatDate(shift.startDate)}`;
+            document.getElementById('report-sessions').textContent = totalSessions;
+            document.getElementById('report-total-time').textContent = formatTime(totalTime);
+            document.getElementById('report-game-revenue').textContent = `${totalGameRevenue} ֏`;
+            document.getElementById('report-bar-revenue').textContent = `${totalBarRevenue} ֏`;
+            document.getElementById('report-total-revenue').textContent = `${totalRevenue} ֏`;
+
+            const pcDetails = {};
+            sessions.forEach(s => {
+                if (!pcDetails[s.pcName]) {
+                    pcDetails[s.pcName] = { sessions: 0, time: 0, game: 0, bar: 0, total: 0 };
+                }
+                pcDetails[s.pcName].sessions++;
+                pcDetails[s.pcName].time += s.duration;
+                pcDetails[s.pcName].game += s.gameCost;
+                pcDetails[s.pcName].bar += s.barCost;
+                pcDetails[s.pcName].total += s.total;
+            });
+
+            const pcDetailsEl = document.getElementById('report-pc-details');
+            pcDetailsEl.innerHTML = Object.entries(pcDetails).map(([name, data]) => `
+                <div class="report-pc-row">
+                    <span><b>${name}</b> (${data.sessions} сессий, ${formatTime(data.time)})</span>
+                    <span style="color: var(--accent-green); font-weight: bold;">${data.total} ֏</span>
+                </div>
+            `).join('');
+
+            const barItemsSold = {};
+            sessions.forEach(s => {
+                if (s.barItems) {
+                    s.barItems.forEach(item => {
+                        if (!barItemsSold[item.name]) barItemsSold[item.name] = { count: 0, total: 0 };
+                        barItemsSold[item.name].count++;
+                        barItemsSold[item.name].total += item.price;
+                    });
+                }
+            });
+
+            const barBlock = document.getElementById('report-bar-details-block');
+            if (Object.keys(barItemsSold).length > 0) {
+                barBlock.style.display = 'block';
+                const barEl = document.getElementById('report-bar-details');
+                barEl.innerHTML = Object.entries(barItemsSold).map(([name, data]) => `
+                    <div class="report-pc-row">
+                        <span>${name} × ${data.count}</span>
+                        <span style="color: var(--accent-orange); font-weight: bold;">${data.total} ֏</span>
+                    </div>
+                `).join('');
+            } else {
+                barBlock.style.display = 'none';
+            }
+
+            openModal('close-shift-modal');
+        }
+
+        function performCloseShift() {
+            state.shiftHistory.push({
+                startDate: state.currentShift.startDate,
+                endDate: new Date().toISOString(),
+                sessions: [],
+                totalGameRevenue: 0,
+                totalBarRevenue: 0,
+                totalRevenue: 0,
+                totalTime: 0,
+                pricePerHour: state.pricePerHour
+            });
+            state.currentShift = {
+                startDate: new Date().toISOString(),
+                sessions: []
+            };
+            saveState();
+            updateUI();
+            showToast("Смена закрыта", "success");
+        }
+
+        function confirmCloseShift() {
+            const shift = state.currentShift;
+            const sessions = shift.sessions || [];
+            
+            const totalGameRevenue = sessions.reduce((sum, s) => sum + s.gameCost, 0);
+            const totalBarRevenue = sessions.reduce((sum, s) => sum + s.barCost, 0);
+            const totalRevenue = totalGameRevenue + totalBarRevenue;
+            const totalTime = sessions.reduce((sum, s) => sum + s.duration, 0);
+
+            state.shiftHistory.push({
+                startDate: shift.startDate,
+                endDate: new Date().toISOString(),
+                sessions: [...sessions],
+                totalGameRevenue,
+                totalBarRevenue,
+                totalRevenue,
+                totalTime,
+                pricePerHour: state.pricePerHour
+            });
+
+            state.currentShift = {
+                startDate: new Date().toISOString(),
+                sessions: []
+            };
+
+            saveState();
+            closeModal('close-shift-modal');
+            updateUI();
+
+            setTimeout(() => {
+                showConfirm(
+                    "Смена закрыта ✅",
+                    `Выручка: ${totalRevenue} ֏. Новая смена начата.`,
+                    null,
+                    "Отлично"
+                );
+            }, 200);
+        }
+
+        // === ПРОСМОТР ИСТОРИИ ===
+        function openHistoryModal(index) {
+            const shift = state.shiftHistory[index];
+            if (!shift) return;
+
+            document.getElementById('history-modal-date').textContent = formatDateShort(shift.startDate);
+            document.getElementById('history-modal-sessions').textContent = shift.sessions.length;
+            document.getElementById('history-modal-time').textContent = formatTime(shift.totalTime || 0);
+            document.getElementById('history-modal-game').textContent = `${shift.totalGameRevenue} ֏`;
+            document.getElementById('history-modal-bar').textContent = `${shift.totalBarRevenue} ֏`;
+            document.getElementById('history-modal-total').textContent = `${shift.totalRevenue} ֏`;
+
+            openModal('history-modal');
+        }
+
+        // === ВОЗВРАТ ИЗ ФОНА ===
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                state.computers.forEach((pc, index) => {
+                    if (pc.isBusy && pc.startTime && pc.status !== 'paused') {
+                        pc.elapsedSeconds = Math.floor((Date.now() - pc.startTime) / 1000);
+                        if (pc.timerInterval) clearInterval(pc.timerInterval);
+                        startTimerInterval(index);
+                    }
+                });
+                renderPCs();
+                checkBookings();
+            }
+        });
+
+        // === PWA: УСТАНОВКА ===
+        let deferredPrompt = null;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+        });
+
+        // === ЗАКРЫТИЕ ПО КЛИКУ НА ФОН МОДАЛКИ ===
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay && overlay.id !== 'confirm-modal') {
+                    closeModal(overlay.id);
+                }
+            });
+        });
+
+        // Запуск
+        init();
+        window.addEventListener('beforeunload', saveState);
+        window.addEventListener('resize', () => {
+            // Перерисовываем при смене ориентации/размера, чтобы даты и кнопки адаптировались
+            clearTimeout(window._resizeTimer);
+            window._resizeTimer = setTimeout(renderPCs, 200);
+        });
+
+    </script>
+</body>
+</html>
