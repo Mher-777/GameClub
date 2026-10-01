@@ -988,6 +988,7 @@
             <button class="stats-btn active" data-period="7" onclick="renderStats(7, this)">7 дней</button>
             <button class="stats-btn" data-period="14" onclick="renderStats(14, this)">14 дней</button>
             <button class="stats-btn" data-period="30" onclick="renderStats(30, this)">30 дней</button>
+            <button class="stats-btn" onclick="confirmResetStatistics()" style="background:var(--accent-red); color:#fff; border-color:var(--accent-red);">🗑️ Сбросить статистику</button>
         </div>
 
         <div class="chart-container">
@@ -2327,6 +2328,47 @@
                     </div>
                 `).join('')
                 : '<p class="empty-text">Нет данных</p>';
+        }
+
+        // === СБРОС СТАТИСТИКИ ===
+        function confirmResetStatistics() {
+            const historyCount = state.shiftHistory ? state.shiftHistory.length : 0;
+            const currentSessionsCount = state.currentShift && state.currentShift.sessions
+                ? state.currentShift.sessions.length
+                : 0;
+
+            if (historyCount === 0 && currentSessionsCount === 0) {
+                showConfirm(
+                    "Статистика уже пустая",
+                    "Нет сохранённых смен и завершённых сессий для удаления.",
+                    null,
+                    "Понятно"
+                );
+                return;
+            }
+
+            showConfirm(
+                "Сбросить статистику?",
+                `Будут удалены ${historyCount} закрытых смен и ${currentSessionsCount} завершённых сессий текущей смены. ПК, тарифы и товары бара останутся без изменений.`,
+                () => {
+                    state.shiftHistory = [];
+
+                    if (!state.currentShift) {
+                        state.currentShift = {
+                            startDate: new Date().toISOString(),
+                            sessions: []
+                        };
+                    } else {
+                        state.currentShift.sessions = [];
+                    }
+
+                    saveState();
+                    renderStats(7, document.querySelector('.stats-btn[data-period="7"]'));
+                    renderShiftHistory();
+                    showToast("Статистика полностью сброшена", "success");
+                },
+                "Да, сбросить"
+            );
         }
 
         // === ПОДТВЕРЖДЕНИЕ ===
