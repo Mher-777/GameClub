@@ -1040,7 +1040,7 @@
         
         <div class="form-row">
             <label>Стоимость часа (֏):</label>
-            <input type="number" id="setting-price" value="1000" style="width: 100px;">
+            <input type="number" id="setting-price" value="1500" style="width: 100px;">
             <button class="action-btn btn-edit" onclick="savePrice()" style="flex: none; width: auto;">Сохранить</button>
         </div>
 
@@ -1289,6 +1289,24 @@
                     if (!state.shiftHistory) state.shiftHistory = [];
                     if (!state.currentShift.sessions) state.currentShift.sessions = [];
                     if (!state.bookings) state.bookings = [];
+
+                    state.computers.forEach((pc) => {
+                        if (pc.pricePerHour == null) pc.pricePerHour = 1500;
+                    });
+
+                    const psNames = ['PS #1', 'PS #2', 'PS #3', 'PS #4'];
+                    psNames.forEach((name) => {
+                        if (!state.computers.some(pc => pc.name === name)) {
+                            const newId = state.computers.length > 0
+                                ? Math.max(...state.computers.map(p => p.id)) + 1
+                                : 1;
+                            state.computers.push({
+                                id: newId, name: name, pricePerHour: 1000,
+                                isBusy: false, status: 'free', startTime: null,
+                                elapsedSeconds: 0, barItems: []
+                            });
+                        }
+                    });
                     
                     state.computers.forEach((pc, index) => {
                         if (!pc.barItems) pc.barItems = [];
@@ -1311,12 +1329,16 @@
 
         function createDefaultState() {
             state = {
-                pricePerHour: 1000,
+                pricePerHour: 1500,
                 computers: [
-                    { id: 1, name: 'ПК #1', isBusy: false, status: 'free', startTime: null, elapsedSeconds: 0, barItems: [] },
-                    { id: 2, name: 'ПК #2', isBusy: false, status: 'free', startTime: null, elapsedSeconds: 0, barItems: [] },
-                    { id: 3, name: 'ПК #3', isBusy: false, status: 'free', startTime: null, elapsedSeconds: 0, barItems: [] },
-                    { id: 4, name: 'ПК #4', isBusy: false, status: 'free', startTime: null, elapsedSeconds: 0, barItems: [] }
+                    { id: 1, name: 'ПК #1', pricePerHour: 1500, isBusy: false, status: 'free', startTime: null, elapsedSeconds: 0, barItems: [] },
+                    { id: 2, name: 'ПК #2', pricePerHour: 1500, isBusy: false, status: 'free', startTime: null, elapsedSeconds: 0, barItems: [] },
+                    { id: 3, name: 'ПК #3', pricePerHour: 1500, isBusy: false, status: 'free', startTime: null, elapsedSeconds: 0, barItems: [] },
+                    { id: 4, name: 'ПК #4', pricePerHour: 1500, isBusy: false, status: 'free', startTime: null, elapsedSeconds: 0, barItems: [] },
+                    { id: 5, name: 'PS #1', pricePerHour: 1000, isBusy: false, status: 'free', startTime: null, elapsedSeconds: 0, barItems: [] },
+                    { id: 6, name: 'PS #2', pricePerHour: 1000, isBusy: false, status: 'free', startTime: null, elapsedSeconds: 0, barItems: [] },
+                    { id: 7, name: 'PS #3', pricePerHour: 1000, isBusy: false, status: 'free', startTime: null, elapsedSeconds: 0, barItems: [] },
+                    { id: 8, name: 'PS #4', pricePerHour: 1000, isBusy: false, status: 'free', startTime: null, elapsedSeconds: 0, barItems: [] }
                 ],
                 barItems: [
                     { id: 1, name: 'Coca-Cola', price: 150 },
@@ -1337,7 +1359,8 @@
             const stateToSave = {
                 pricePerHour: state.pricePerHour,
                 computers: state.computers.map(pc => ({
-                    id: pc.id, name: pc.name, isBusy: pc.isBusy, status: pc.status,
+                    id: pc.id, name: pc.name, pricePerHour: pc.pricePerHour || 1500,
+                    isBusy: pc.isBusy, status: pc.status,
                     startTime: pc.startTime, elapsedSeconds: pc.elapsedSeconds, barItems: pc.barItems
                 })),
                 barItems: state.barItems,
@@ -1387,8 +1410,9 @@
             return window.innerWidth <= 700;
         }
 
-        function calculateCost(totalSeconds) {
-            return Math.round((totalSeconds / 3600) * state.pricePerHour);
+        function calculateCost(totalSeconds, pc) {
+            const price = pc && pc.pricePerHour != null ? pc.pricePerHour : (state.pricePerHour || 1500);
+            return Math.round((totalSeconds / 3600) * price);
         }
 
         function calculateBarCost(pc) {
@@ -1448,7 +1472,7 @@
         }
 
         function updateUI() {
-            document.getElementById('header-price').textContent = `Тариф: ${state.pricePerHour} ֏ / час`;
+            document.getElementById('header-price').textContent = 'ПК: 1500 ֏ / час • PS: 1000 ֏ / час';
             document.getElementById('setting-price').value = state.pricePerHour;
             
             if (state.currentShift && state.currentShift.startDate) {
@@ -1521,7 +1545,7 @@
                         <div class="pc-title">${pc.name}</div>
                         <div class="pc-status">Статус: ${isPaused ? '⏸ На паузе' : 'Занят'}</div>
                         <div class="display-area" id="display-${pc.id}">${formatTime(pc.elapsedSeconds)}</div>
-                        <div class="cost-area" id="cost-${pc.id}">Игра: ${calculateCost(pc.elapsedSeconds)} ֏</div>
+                        <div class="cost-area" id="cost-${pc.id}">Игра: ${calculateCost(pc.elapsedSeconds, pc)} ֏</div>
                         <div class="bar-cost-area">${barText}</div>
                         ${bookingInfo}
                         <div class="btn-group">
@@ -1565,7 +1589,7 @@
                 const costEl = document.getElementById(`cost-${pc.id}`);
                 if (displayEl && costEl) {
                     displayEl.textContent = formatTime(pc.elapsedSeconds);
-                    costEl.textContent = `Игра: ${calculateCost(pc.elapsedSeconds)} ֏`;
+                    costEl.textContent = `Игра: ${calculateCost(pc.elapsedSeconds, pc)} ֏`;
                 }
                 if (pc.elapsedSeconds % 60 === 0) saveState();
             }, 1000);
@@ -1652,7 +1676,7 @@
             if (!pc.isBusy) return;
             if (pc.timerInterval) clearInterval(pc.timerInterval);
             
-            const gameCost = calculateCost(pc.elapsedSeconds);
+            const gameCost = calculateCost(pc.elapsedSeconds, pc);
             const barCost = calculateBarCost(pc);
             const total = gameCost + barCost;
             const timeString = formatTime(pc.elapsedSeconds);
@@ -2083,7 +2107,11 @@
                 const div = document.createElement('div');
                 div.className = 'list-item';
                 div.innerHTML = `
-                    <span>${pc.name} ${pc.isBusy ? '<span style="color:var(--accent-green)">(Занят)</span>' : ''} ${pc.status === 'paused' ? '<span style="color:var(--accent-yellow)">(Пауза)</span>' : ''}</span>
+                    <div class="item-info">
+                        <span>${pc.name} ${pc.isBusy ? '<span style="color:var(--accent-green)">(Занят)</span>' : ''} ${pc.status === 'paused' ? '<span style="color:var(--accent-yellow)">(Пауза)</span>' : ''}</span>
+                        <input type="number" min="1" value="${pc.pricePerHour || 1500}" onchange="editPCPrice(${index}, this.value)" style="width: 90px;">
+                        <span class="item-price">֏/час</span>
+                    </div>
                     <button class="action-btn btn-del" onclick="confirmRemovePC(${index})" style="flex: none; width: auto; padding: 6px 12px; font-size: 12px;">Удалить</button>
                 `;
                 pcList.appendChild(div);
@@ -2143,13 +2171,22 @@
             }
         }
 
+        function editPCPrice(index, value) {
+            const val = parseInt(value);
+            if (!isNaN(val) && val > 0) {
+                state.computers[index].pricePerHour = val;
+                saveState();
+                updateUI();
+            }
+        }
+
         function addPC() {
             const nameInput = document.getElementById('new-pc-name');
             const name = nameInput.value.trim();
             if (!name) return;
             
             const newId = state.computers.length > 0 ? Math.max(...state.computers.map(p => p.id)) + 1 : 1;
-            state.computers.push({ id: newId, name: name, isBusy: false, status: 'free', startTime: null, elapsedSeconds: 0, barItems: [] });
+            state.computers.push({ id: newId, name: name, pricePerHour: 1500, isBusy: false, status: 'free', startTime: null, elapsedSeconds: 0, barItems: [] });
             nameInput.value = '';
             saveState();
             updateUI();
